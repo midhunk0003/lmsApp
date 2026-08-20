@@ -10,13 +10,15 @@ import 'package:http/http.dart';
 import 'package:lms/core/api_end_point.dart';
 import 'package:lms/core/failure.dart';
 import 'package:lms/core/navigator_service.dart';
+import 'package:lms/data/local_data_source/local_data_sourse.dart';
 import 'package:lms/presentation/widgets/app_snake_bar_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   final http.Client _client;
-
-  ApiClient(this._client);
+  final AuthLocalDataSource localDataSource;
+  ApiClient({http.Client? client, required this.localDataSource})
+    : _client = client ?? http.Client();
 
   // ================== GET DATA Handle ==================
   Future<Either<Failure, Map<String, dynamic>>> get(
@@ -31,7 +33,7 @@ class ApiClient {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
-
+      print('access token mmmmmmmmmmmmmmmmm : ${accessToken}');
       final headers = <String, String>{
         'Content-Type': 'application/json',
         if (requiresAuth && accessToken != null)
@@ -46,7 +48,6 @@ class ApiClient {
       if (response.statusCode == 401 && requiresAuth) {
         print('Received 401 Unauthorized. Attempting to refresh token...');
         final refreshed = await _refreshToken();
-
         if (refreshed) {
           accessToken = prefs.getString('accessToken');
 
@@ -455,11 +456,77 @@ class ApiClient {
     }
   }
 
+  // ================== PATCH DATA Handle ==================
+  Future<Either<Failure, Map<String, dynamic>>> patch(
+    String? url, {
+    Map<String, dynamic>? body,
+    bool requiresAuth = true,
+  }) async {
+    if (url == null || url.isEmpty) {
+      return Left(ClientFailure('Invalid API URL'));
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('accessToken');
+
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        if (requiresAuth && accessToken != null)
+          'Authorization': 'Bearer $accessToken',
+      };
+
+      final response = await _client
+          .patch(
+            Uri.parse(url),
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(const Duration(seconds: 20));
+
+      // ================= HANDLE 401 =================
+      if (response.statusCode == 401 && requiresAuth) {
+        final refreshed = await _refreshToken();
+
+        if (refreshed) {
+          accessToken = prefs.getString('accessToken');
+
+          final retryHeaders = <String, String>{
+            'Content-Type': 'application/json',
+            if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+          };
+
+          final retryResponse = await _client
+              .patch(
+                Uri.parse(url),
+                headers: retryHeaders,
+                body: body != null ? jsonEncode(body) : null,
+              )
+              .timeout(const Duration(seconds: 20));
+
+          return handleResponse(retryResponse);
+        } else {
+          await _forceLogout();
+          return Left(AuthFailure('Session expired'));
+        }
+      }
+
+      return handleResponse(response);
+    } on TimeoutException {
+      return Left(NetworkFailure('Request timed out'));
+    } on SocketException {
+      return Left(NetworkFailure('No internet connection'));
+    } catch (e) {
+      log('PATCH request error: $e');
+      return Left(OtherFailureNon200('Unexpected error occurred'));
+    }
+  }
+
   // ================== REFRESH TOKEN Handle ==================
   Future<bool> _refreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     final refreshToken = prefs.getString('refreshToken');
-
+    print('refreshtokenaaaaaaaaaaaaaaaaa : ${refreshToken}');
     if (refreshToken == null) return false;
 
     final response = await _client.post(
@@ -471,6 +538,7 @@ class ApiClient {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       await prefs.setString('accessToken', data['data']['accessToken']);
+      await prefs.setString('refreshToken', data['data']['refreshToken']);
       return true;
     }
     return false;
@@ -486,7 +554,7 @@ class ApiClient {
     }
 
     final int statusCode = response.statusCode;
-
+    print('sssssssssssss : ${response.body}');
     Map<String, dynamic>? decoded;
 
     try {
@@ -546,13 +614,8 @@ class ApiClient {
 
   // ================== Handle Force Logout  handle ==================
   Future<void> _forceLogout() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.clear(); // clear everything
-
+    await localDataSource.clearSession();
     // optional: if you want selective clear
-    // await prefs.remove('accessToken');
-    // await prefs.remove('refreshToken');
     // 🔥 Navigate globally
     NavigationService.navigateToLogin();
     AppSnackBar.show(

@@ -19,11 +19,12 @@ class AuthRepositoryImplimentation implements AuthRepository {
   Future<Either<Failure, LoginModel>> Login(
     String? email,
     String? password,
+    String? fcmToken,
   ) async {
     try {
       final response = await apiClient.post(
         "${ApiEndPoint.baseUrl}${ApiEndPoint.loginEndPoint}",
-        body: {"email": email, "password": password},
+        body: {"email": email, "password": password, 'fcmToken': fcmToken},
         requiresAuth: false,
         files: null,
       );

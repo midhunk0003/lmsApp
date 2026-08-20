@@ -7,7 +7,7 @@ class NavigationService {
   static void navigateToLogin() {
     Future.microtask(() {
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        '/loginScreen',
+        '/loginscreen',
         (route) => false,
       );
     });

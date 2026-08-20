@@ -15,4 +15,31 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+        <!-- Video Player Fullscreen Theme -->
+    <style
+        name="VideoPlayerTheme"
+        parent="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- Remove ActionBar -->
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowNoTitle">true</item>
+
+        <!-- Fullscreen -->
+        <item name="android:windowFullscreen">true</item>
+
+        <!-- Transparent system bars -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">
+            @android:color/transparent
+        </item>
+
+        <item name="android:navigationBarColor">
+            @android:color/black
+        </item>
+
+        <!-- White system icons -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+    </style>
 </resources>

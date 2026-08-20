@@ -4,14 +4,20 @@ import 'package:lms/core/success.dart';
 import 'package:lms/data/local_data_source/local_data_sourse.dart';
 import 'package:lms/data/model/login_model/login_model.dart';
 import 'package:lms/domain/repository/auth_repository.dart';
+import 'package:lms/firebasemessagingservice.dart';
 
 enum AuthStatus { initial, loading, success, failure }
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository authRepository;
   final AuthLocalDataSource localDataSource;
+  final FirebaseMessagingService firebaseMessagingService;
 
-  AuthProvider({required this.authRepository, required this.localDataSource});
+  AuthProvider({
+    required this.authRepository,
+    required this.localDataSource,
+    required this.firebaseMessagingService,
+  });
 
   AuthStatus _status = AuthStatus.initial;
   bool _isObscureText = true;
@@ -36,7 +42,18 @@ class AuthProvider extends ChangeNotifier {
     _loginMOdel = null;
     _failure = null;
     notifyListeners();
-    final result = await authRepository.Login(userName, password);
+    // FCM failure must NOT stop login
+    String? fcmToken;
+
+    try {
+      fcmToken = await firebaseMessagingService.getTokenFromPrefs();
+    } catch (e) {
+      debugPrint('FCM error during login: $e');
+      fcmToken = null;
+    }
+
+    debugPrint('FCM token for login: $fcmToken');
+    final result = await authRepository.Login(userName, password, fcmToken);
     result.fold(
       (failure) {
         _failure = failure;
@@ -82,6 +99,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> getUserRole() async {
+    try {
+      final role = await localDataSource.prefs.getString('role');
+      return role;
+    } catch (e) {
+      print("Error retrieving user role: $e");
+      return null;
+    }
+  }
+
   // clear failure
   void clearFailure() {
     _status = AuthStatus.initial;
@@ -91,18 +118,29 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> logoutProvider() async {
+    if (_status == AuthStatus.loading) {
+      return false;
+    }
+
     try {
       _status = AuthStatus.loading;
       notifyListeners();
+
       await localDataSource.clearSession();
+
+      debugPrint("User logged out successfully");
+
       _status = AuthStatus.initial;
       notifyListeners();
-      print("User logged out successfully");
+
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint("Logout failed: $e");
+      debugPrintStack(stackTrace: stackTrace);
+
       _status = AuthStatus.failure;
-      print("Logout failed: $e");
       notifyListeners();
+
       return false;
     }
   }

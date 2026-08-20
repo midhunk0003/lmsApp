@@ -63,6 +63,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           context: context,
                           message: "Registration Successful",
                           provider: authProvider,
+                          onTap: () {
+                            authProvider.clearFailure();
+                            Navigator.pop(context);
+                          },
                         );
                       }
 
@@ -72,6 +76,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           context: context,
                           failure: authProvider.failure,
                           provider: authProvider,
+                          onTap: () {
+                            authProvider.clearFailure();
+                            Navigator.pop(context);
+                          },
                         );
                       }
                     },
@@ -225,6 +233,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             context: context,
                                             message: "Registration Successful",
                                             provider: authProvider,
+                                            onTap: () {
+                                              // authProvider.clearFailure();
+                                              Navigator.pop(context);
+                                            },
                                           );
                                         }
 
@@ -237,6 +249,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             context: context,
                                             failure: authProvider.failure,
                                             provider: authProvider,
+                                            onTap: () {
+                                              authProvider.clearFailure();
+                                              Navigator.pop(context);
+                                            },
                                           );
                                         }
                                       }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lms/core/colors.dart';
 import 'package:lms/presentation/provider/auth_provider.dart';
-import 'package:lms/presentation/provider/search_course_provider.dart';
+import 'package:lms/presentation/provider/user_provider/search_course_provider.dart';
 import 'package:provider/provider.dart';
 
 class CommonTextFormField<T extends ChangeNotifier> extends StatelessWidget {
@@ -39,6 +39,7 @@ class CommonTextFormField<T extends ChangeNotifier> extends StatelessWidget {
     double rs(double size) => size * scale;
 
     return FormField<String>(
+      initialValue: controller.text,
       validator: validator,
       builder: (FormFieldState<String> field) {
         return Column(

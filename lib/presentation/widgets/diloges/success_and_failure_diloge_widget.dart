@@ -8,6 +8,7 @@ class FailureAndSuccessDialogWidget<T extends ChangeNotifier>
   final String? heading;
   final String? title;
   final T provider;
+  final VoidCallback onTap;
 
   const FailureAndSuccessDialogWidget({
     Key? key,
@@ -15,6 +16,7 @@ class FailureAndSuccessDialogWidget<T extends ChangeNotifier>
     this.heading,
     this.title,
     required this.provider,
+    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -144,11 +146,7 @@ class _FailureAndSuccessDialogWidgetState<T extends ChangeNotifier>
 
                 text: "Ok",
 
-                onTap: () {
-                  (widget.provider as dynamic).clearFailure();
-
-                  Navigator.pop(context);
-                },
+                onTap: widget.onTap,
               ),
             ],
           ),

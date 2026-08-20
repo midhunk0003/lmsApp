@@ -65,6 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               context: context,
                               message: "Login Successful",
                               provider: authProvider,
+                              onTap: () {
+                                // authProvider.c();
+                                Navigator.pop(context);
+                              },
                             );
                           }
 
@@ -74,6 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               context: context,
                               failure: authProvider.failure,
                               provider: authProvider,
+                              onTap: () {
+                                authProvider.clearFailure();
+                                Navigator.pop(context);
+                              },
                             );
                           }
                         },
@@ -157,7 +165,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               SizedBox(height: _isTablet ? 40 : 36),
-
                               CommonCustomeButtonWidget(
                                 isTablet: _isTablet,
                                 text: "Login",
@@ -165,38 +172,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                     authProvider.status == AuthStatus.loading
                                         ? null
                                         : () async {
-                                          print('login');
-                                          if (_formKey.currentState!
-                                              .validate()) {
-                                            print('login');
+                                          if (!_formKey.currentState!
+                                              .validate())
+                                            return;
+
+                                          try {
+                                            // Login API
                                             await authProvider.loginProvider(
                                               userNameController.text.trim(),
                                               passwordController.text.trim(),
                                             );
-                                            // Guard against widget being disposed during async gap
+
                                             if (!mounted) return;
 
-                                            /// ✅ SUCCESS
-                                            print(
-                                              'auth provider status: ${authProvider.status}',
-                                            );
-
-                                            if (authProvider.status ==
-                                                AuthStatus.success) {
-                                              Navigator.pushReplacementNamed(
-                                                context,
-                                                '/custombottomnavbarwidget',
-                                              );
-                                              AppDialogHelper.showSuccessDialog<
-                                                AuthProvider
-                                              >(
-                                                context: context,
-                                                message: "Login Successful",
-                                                provider: authProvider,
-                                              );
-                                            }
-
-                                            /// ❌ FAILURE
+                                            // Login Failed
                                             if (authProvider.status ==
                                                 AuthStatus.failure) {
                                               AppDialogHelper.showFailureDialog<
@@ -205,8 +194,93 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 context: context,
                                                 failure: authProvider.failure,
                                                 provider: authProvider,
+                                                onTap: () {
+                                                  authProvider.clearFailure();
+                                                  Navigator.pop(context);
+                                                },
                                               );
+                                              return;
                                             }
+
+                                            // Login Success
+                                            if (authProvider.status ==
+                                                AuthStatus.success) {
+                                              String? userRole;
+
+                                              try {
+                                                userRole =
+                                                    await authProvider
+                                                        .getUserRole();
+                                              } catch (e) {
+                                                debugPrint(
+                                                  "Error getting user role: $e",
+                                                );
+                                              }
+
+                                              if (!mounted) return;
+
+                                              if (userRole == null ||
+                                                  userRole.isEmpty) {
+                                                AppDialogHelper.showFailureDialog<
+                                                  AuthProvider
+                                                >(
+                                                  context: context,
+                                                  failure:
+                                                      "Unable to retrieve user role.",
+                                                  provider: authProvider,
+                                                  onTap: () {
+                                                    authProvider.clearFailure();
+                                                    Navigator.pop(context);
+                                                  },
+                                                );
+                                                return;
+                                              }
+
+                                              // Navigate
+                                              Navigator.pushReplacementNamed(
+                                                context,
+                                                '/custombottomnavbarwidget',
+                                                arguments: {
+                                                  'userrole': userRole,
+                                                },
+                                              );
+
+                                              return;
+                                            }
+
+                                            // Unexpected Status
+                                            AppDialogHelper.showFailureDialog<
+                                              AuthProvider
+                                            >(
+                                              context: context,
+                                              failure:
+                                                  "Something went wrong. Please try again.",
+                                              provider: authProvider,
+                                              onTap: () {
+                                                authProvider.clearFailure();
+                                                Navigator.pop(context);
+                                              },
+                                            );
+                                          } catch (e, stackTrace) {
+                                            debugPrint("Login Exception: $e");
+                                            debugPrintStack(
+                                              stackTrace: stackTrace,
+                                            );
+
+                                            if (!mounted) return;
+
+                                            AppDialogHelper.showFailureDialog<
+                                              AuthProvider
+                                            >(
+                                              context: context,
+                                              failure:
+                                                  "An unexpected error occurred.",
+                                              provider: authProvider,
+                                              onTap: () {
+                                                authProvider.clearFailure();
+                                                Navigator.pop(context);
+                                              },
+                                            );
                                           }
                                         },
                               ),

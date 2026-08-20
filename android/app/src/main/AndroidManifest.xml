@@ -1,5 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.INTERNET"/>
+<!-- For Android 9 (API 28) and below -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <application
         android:label="lms"
         android:name="${applicationName}"
@@ -32,8 +40,11 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <activity
             android:name=".VideoPlayerActivity"
+            android:exported="false"
+            android:theme="@style/VideoPlayerTheme"
             android:screenOrientation="sensorLandscape"
-            android:exported="false"/>     
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustNothing" />     
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

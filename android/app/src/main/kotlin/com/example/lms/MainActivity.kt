@@ -1,4 +1,4 @@
-package com.example.lms
+package com.webinarhub.lms
 
 import android.content.Intent
 import io.flutter.embedding.android.FlutterActivity

@@ -45,6 +45,20 @@ dependencies:
   json_annotation: ^4.9.0
   lottie: ^3.3.1
   flutter_secure_storage: ^10.3.0
+  youtube_player_iframe: ^5.2.2
+  youtube_player_flutter: ^9.0.3
+  url_launcher: ^6.3.2
+  dio: ^5.10.0
+  intl: ^0.19.0
+  image_gallery_saver_plus: ^4.0.1
+  fl_chart: ^0.70.2
+  background_downloader: ^9.5.7
+  file_picker: ^8.0.0
+  syncfusion_flutter_pdfviewer: ^31.1.19
+  webview_flutter: ^4.13.0
+  firebase_core: ^3.15.1
+  firebase_messaging: ^15.2.5
+  flutter_local_notifications: ^19.4.0
 
 dev_dependencies:
   build_runner: ^2.4.12
@@ -118,7 +132,13 @@ flutter:
     - assets/images/img4.jpg
     - assets/svg/successimage.svg
     - assets/images/successmesg.png
-    - assets/images/failuremsg.png    
+    - assets/images/failuremsg.png
+    - assets/svg/untick.svg
+    - assets/svg/playbutton.svg
+    - assets/svg/pdficon2.svg
+    - assets/svg/doc.svg
+    - assets/svg/downloadicon.svg
+    - assets/svg/cerificationseal.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
